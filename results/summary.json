@@ -18,15 +18,15 @@
     "2025 / no support": "U+8 C+0 S0 F0"
   },
   "flex_only_gain_meur_by_scenario": {
-    "2023 / biomethane 25 + CHP premium 30": -0.3183022183422055,
-    "2023 / biomethane support 25": -0.29640535195580126,
-    "2023 / no support": -0.2962467193854377,
-    "2024 / biomethane 25 + CHP premium 30": -0.30821452024934254,
-    "2024 / biomethane support 25": -0.2939086840004437,
-    "2024 / no support": -0.2939086840003729,
-    "2025 / biomethane 25 + CHP premium 30": -0.31678074661699496,
-    "2025 / biomethane support 25": -0.29153019479500314,
-    "2025 / no support": -0.29153019479500686
+    "2023 / biomethane 25 + CHP premium 30": -0.31830221834214406,
+    "2023 / biomethane support 25": -0.2964053519557491,
+    "2023 / no support": -0.2962467193853855,
+    "2024 / biomethane 25 + CHP premium 30": -0.3082145202492755,
+    "2024 / biomethane support 25": -0.29390868400038966,
+    "2024 / no support": -0.2939086840003375,
+    "2025 / biomethane 25 + CHP premium 30": -0.3167807466169074,
+    "2025 / biomethane support 25": -0.29153019479493425,
+    "2025 / no support": -0.2915301947949454
   },
   "self_sufficiency": {
     "heat_share_covered_ref": 0.3377655937661106,
@@ -36,7 +36,7 @@
   },
   "outage_unserved_share": {
     "reference": 0.518976259315063,
-    "min": 0.39707298256614054,
+    "min": 0.3970729825661357,
     "max": 0.518976259315063
   }
 }

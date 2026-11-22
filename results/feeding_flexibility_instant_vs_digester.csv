@@ -1,0 +1,10 @@
+year,variant,gross_eur,gas_swing_max_over_mean,gain_over_no_feeding_flex_eur
+2023,"storage 120 MWh, no feeding flexibility",9708382.969695041,0.0,0.0
+2023,"storage 120 MWh + feeding +-25%, instant gas response (previous assumption)",9708382.969695011,0.5000000000000027,-2.9802322387695312e-08
+2023,"storage 120 MWh + feeding +-25%, through the digester",9708382.969695063,0.1099276607316515,2.2351741790771484e-08
+2024,"storage 120 MWh, no feeding flexibility",8820184.354638528,0.0,0.0
+2024,"storage 120 MWh + feeding +-25%, instant gas response (previous assumption)",8820184.354638508,0.4840983606557402,-2.0489096641540527e-08
+2024,"storage 120 MWh + feeding +-25%, through the digester",8820184.354638543,0.0985666497807391,1.4901161193847656e-08
+2025,"storage 120 MWh, no feeding flexibility",9224868.948384464,0.0,0.0
+2025,"storage 120 MWh + feeding +-25%, instant gas response (previous assumption)",9224868.94838443,0.4840983606557402,-3.3527612686157227e-08
+2025,"storage 120 MWh + feeding +-25%, through the digester",9224868.948384492,0.1124465428548456,2.7939677238464355e-08

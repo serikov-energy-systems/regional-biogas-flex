@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
-from . import data, model
+from . import data, digestion, model
 
 ROOT = Path(__file__).resolve().parents[2]
 RES = ROOT / "results"
@@ -50,7 +50,7 @@ def plan_grid():
     plans = {}
     for ua, ca, s, ff in itertools.product((0, 8, 16), (0, 8, 16), (0, 40, 120), (0.0, 0.25)):
         plans[f"U+{ua} C+{ca} S{s} F{int(ff * 100)}"] = replace(
-            BASE, upgr_mw=BASE.upgr_mw + ua, chp_mw=BASE.chp_mw + ca, store_mwh=float(s), feed_flex=ff)
+            BASE, upgr_mw=BASE.upgr_mw + ua, chp_mw=BASE.chp_mw + ca, store_mwh=float(s), feed_flex=ff, digester_dynamic=ff > 0)
     return plans
 
 
@@ -109,7 +109,7 @@ def main():
     # outage test on a separate small grid
     res_rows = []
     for s, bo, c, ff in itertools.product((0, 40, 120), (8, 18, 28), (4, 12, 20), (0.0, 0.25)):
-        pl = replace(BASE, store_mwh=float(s), boiler_mw=float(bo), chp_mw=float(c), feed_flex=ff)
+        pl = replace(BASE, store_mwh=float(s), boiler_mw=float(bo), chp_mw=float(c), feed_flex=ff, digester_dynamic=ff > 0)
         res_rows.append((f"S{s} B{bo} C{c} F{int(ff * 100)}", pl))
     rr = Parallel(n_jobs=4)(delayed(outage)(pl) for _, pl in res_rows)
     od = pd.DataFrame(rr); od.insert(0, "plan", [n for n, _ in res_rows])
@@ -130,9 +130,9 @@ def volatility_sensitivity():
     """Does flexibility pay when the SE3 price is more volatile? Prices are stretched around their mean by a factor k."""
     rows = []
     plans = {"reference": BASE,
-             "storage 120 MWh + feeding +-25%": replace(BASE, store_mwh=120.0, feed_flex=0.25),
-             "CHP +8 MW, storage 120, feeding": replace(BASE, chp_mw=BASE.chp_mw + 8, store_mwh=120.0, feed_flex=0.25),
-             "CHP +16 MW, storage 120, feeding": replace(BASE, chp_mw=BASE.chp_mw + 16, store_mwh=120.0, feed_flex=0.25)}
+             "storage 120 MWh + feeding +-25%": replace(BASE, store_mwh=120.0, feed_flex=0.25, digester_dynamic=True),
+             "CHP +8 MW, storage 120, feeding": replace(BASE, chp_mw=BASE.chp_mw + 8, store_mwh=120.0, feed_flex=0.25, digester_dynamic=True),
+             "CHP +16 MW, storage 120, feeding": replace(BASE, chp_mw=BASE.chp_mw + 16, store_mwh=120.0, feed_flex=0.25, digester_dynamic=True)}
     w = data.typical_weeks(2024)
     for k in (1.0, 2.0, 3.0, 4.0):
         price = w["price"].mean() + k * (w["price"] - w["price"].mean())
@@ -147,3 +147,28 @@ def volatility_sensitivity():
     df["gain_over_reference_eur"] = df.net_eur - df.stretch.map(ref)
     df.to_csv(RES / "volatility_sensitivity.csv", index=False)
     print(df.round(0).to_string())
+
+
+def digester_study():
+    """Process knowledge: damping of the gas response to feeding, and the value of feeding flexibility with an instant response against the digester."""
+    RES.mkdir(exist_ok=True)
+    tab = digestion.response_table()
+    tab.to_csv(RES / "digester_response.csv", index=False)
+    print(tab.round(3).to_string())
+    rows = []
+    for year in data.YEARS:
+        w = data.typical_weeks(year)
+        for name, pl in (("storage 120 MWh, no feeding flexibility", replace(BASE, store_mwh=120.0)),
+                         ("storage 120 MWh + feeding +-25%, instant gas response (previous assumption)", replace(BASE, store_mwh=120.0, feed_flex=0.25)),
+                         ("storage 120 MWh + feeding +-25%, through the digester", replace(BASE, store_mwh=120.0, feed_flex=0.25, digester_dynamic=True))):
+            r = model.solve(model.build(pl, model.Market(), w["price"], w["gas"], w["temp"], w["weight"]))
+            g = r["g"].reshape(w["price"].shape)
+            rows.append({"year": year, "variant": name, "gross_eur": r["profit"], "gas_swing_max_over_mean": float((g.max(1) - g.min(1)).max() / g.mean())})
+    df = pd.DataFrame(rows)
+    ref = df[df.variant.str.startswith("storage 120 MWh, no")].set_index("year").gross_eur
+    df["gain_over_no_feeding_flex_eur"] = df.gross_eur - df.year.map(ref)
+    df.to_csv(RES / "feeding_flexibility_instant_vs_digester.csv", index=False)
+    print(df.round(3).to_string())
+    d = digestion.digestate_estimate(183.0)
+    (RES / "digestate_estimate.json").write_text(json.dumps(d, indent=2), encoding="utf-8")
+    print(d)

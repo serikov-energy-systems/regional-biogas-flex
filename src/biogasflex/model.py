@@ -25,10 +25,19 @@ class Plant:
     boiler_mw: float = 8.0            # MW gas in (assumed)
     store_mwh: float = 0.0            # raw gas storage (assumed; none existing)
     feed_flex: float = 0.0            # share of the mean by which the feeding may vary within a week
+    digester_dynamic: bool = False    # True: gas follows the feeding through a first-order digester (see digester_eta), False: instant
+    k_hyd_per_day: float = 0.10       # first-order degradation rate of the digestible organic matter at about 38 C (assumed, typical order)
+    hrt_days: float = 30.0            # hydraulic retention time of a continuously stirred digester (assumed)
     eta_up: float = 0.97              # raw gas to biomethane (methane slip 3%, assumed)
     eta_el: float = 0.40
     eta_th: float = 0.45
     eta_boiler: float = 0.90
+
+    @property
+    def digester_eta(self) -> float:
+        """Share of the digestible energy fed that leaves as gas in steady state: k HRT / (1 + k HRT)."""
+        x = self.k_hyd_per_day * self.hrt_days
+        return x / (1.0 + x)
 
 
 @dataclass(frozen=True)
@@ -71,14 +80,41 @@ def build(plant: Plant, mkt: Market, price: np.ndarray, gas: np.ndarray, temp: n
     m.hs = pyo.Var(m.I, bounds=(0, None))     # useful heat sold
     m.un = pyo.Var(m.I, bounds=(0, None))     # unserved heat demand
 
-    def prod_bounds(mm, w, h):
-        base = mean_g * sf[w, h]
-        return pyo.inequality(base * (1 - plant.feed_flex), mm.g[w, h], base * (1 + plant.feed_flex))
-    m.gb = pyo.Constraint(m.I, rule=prod_bounds)
+    if plant.digester_dynamic and plant.feed_flex > 0:
+        # feeding F (MW of digestible energy) varies within +-feed_flex of the supply; the digester holds a stock X that is degraded at
+        # k per hour and washed out with the digestate at 1/HRT; gas g = k X. Cyclic over the typical week.
+        k = plant.k_hyd_per_day / 24.0
+        wash = 1.0 / (plant.hrt_days * 24.0)
+        f0 = mean_g / plant.digester_eta
+        m.F = pyo.Var(m.I, bounds=(0, None))
+        m.X = pyo.Var(m.I, bounds=(0, None))
 
-    def week_total(mm, w):
-        return sum(mm.g[w, h] for h in range(H)) == sum(mean_g * sf[w, h] for h in range(H))
-    m.wt = pyo.Constraint(m.W, rule=week_total)
+        def feed_bounds(mm, w, h):
+            base = f0 * sf[w, h]
+            return pyo.inequality(base * (1 - plant.feed_flex), mm.F[w, h], base * (1 + plant.feed_flex))
+        m.fb = pyo.Constraint(m.I, rule=feed_bounds)
+
+        def feed_total(mm, w):    # the feedstock supply of the week is fixed: feeding can only be moved in time
+            return sum(mm.F[w, h] for h in range(H)) == sum(f0 * sf[w, h] for h in range(H))
+        m.ft = pyo.Constraint(m.W, rule=feed_total)
+
+        def stock(mm, w, h):
+            nxt = mm.X[w, h + 1] if h < H - 1 else mm.X[w, 0]
+            return nxt == mm.X[w, h] * (1.0 - k - wash) + mm.F[w, h]
+        m.st = pyo.Constraint(m.I, rule=stock)
+
+        def gas_from_stock(mm, w, h):
+            return mm.g[w, h] == k * mm.X[w, h]
+        m.gx = pyo.Constraint(m.I, rule=gas_from_stock)
+    else:
+        def prod_bounds(mm, w, h):
+            base = mean_g * sf[w, h]
+            return pyo.inequality(base * (1 - plant.feed_flex), mm.g[w, h], base * (1 + plant.feed_flex))
+        m.gb = pyo.Constraint(m.I, rule=prod_bounds)
+
+        def week_total(mm, w):
+            return sum(mm.g[w, h] for h in range(H)) == sum(mean_g * sf[w, h] for h in range(H))
+        m.wt = pyo.Constraint(m.W, rule=week_total)
 
     def gas_balance(mm, w, h):
         prev = mm.s[w, h - 1] if h > 0 else mm.s[w, H - 1]      # storage cyclic within the week
