@@ -1,0 +1,42 @@
+{
+  "reference_plan": "U+0 C+0 S0 F0",
+  "reference_net_meur": 11.55986189841733,
+  "best_single_plan": "U+8 C+0 S0 F0",
+  "best_single_expected_net_meur": 12.271364658650217,
+  "best_single_gain_over_reference_meur": 0.7115027602328882,
+  "evpi_meur": 0.0,
+  "max_regret_of_best_single_meur": 0.0,
+  "best_plan_by_scenario": {
+    "2023 / biomethane 25 + CHP premium 30": "U+8 C+0 S0 F0",
+    "2023 / biomethane support 25": "U+8 C+0 S0 F0",
+    "2023 / no support": "U+8 C+0 S0 F0",
+    "2024 / biomethane 25 + CHP premium 30": "U+8 C+0 S0 F0",
+    "2024 / biomethane support 25": "U+8 C+0 S0 F0",
+    "2024 / no support": "U+8 C+0 S0 F0",
+    "2025 / biomethane 25 + CHP premium 30": "U+8 C+0 S0 F0",
+    "2025 / biomethane support 25": "U+8 C+0 S0 F0",
+    "2025 / no support": "U+8 C+0 S0 F0"
+  },
+  "flex_only_gain_meur_by_scenario": {
+    "2023 / biomethane 25 + CHP premium 30": -0.3183022183422055,
+    "2023 / biomethane support 25": -0.29640535195580126,
+    "2023 / no support": -0.2962467193854377,
+    "2024 / biomethane 25 + CHP premium 30": -0.30821452024934254,
+    "2024 / biomethane support 25": -0.2939086840004437,
+    "2024 / no support": -0.2939086840003729,
+    "2025 / biomethane 25 + CHP premium 30": -0.31678074661699496,
+    "2025 / biomethane support 25": -0.29153019479500314,
+    "2025 / no support": -0.29153019479500686
+  },
+  "self_sufficiency": {
+    "heat_share_covered_ref": 0.3377655937661106,
+    "heat_share_covered_best": 0.016921991225783195,
+    "biomethane_gwh_ref_mean": 135.52531834734768,
+    "biomethane_gwh_best_mean": 174.10808978102486
+  },
+  "outage_unserved_share": {
+    "reference": 0.518976259315063,
+    "min": 0.39707298256614054,
+    "max": 0.518976259315063
+  }
+}

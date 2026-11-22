@@ -1,0 +1,13 @@
+item,value,source,status
+Raw biogas production Ostergotland 2024,183 GWh (23 plants; digester volume 51 063 m3; 3 upgrading units),Energigas Sverige / Energimyndigheten: Produktion av biogas och rotrester och dess anvandning ar 2024 (tables 2 and 13; data/raw/biogas_report),published
+National shares of use (upgrading 68%; heat 16%; electricity 3%; industry 4%; flaring 8%),report table 5,same report,published (national; the regional split is not published in the report)
+SE3 day-ahead prices 2023-2025,hourly,ENTSO-E Transparency Platform,open data
+TTF front-month,daily,Yahoo Finance continuous contract TTF=F (as in eu-gas-storage-valuation),open data; front-month proxy for spot
+Linkoping temperature 2023-2025,hourly,Open-Meteo archive (ERA5-based),open data
+Feedstock mix and seasonality of the region,not available at county level; production taken flat over the year,assumption,assumption
+Biomethane price = TTF + 30 EUR/MWh premium (+ support in the policy scenarios),assumed,assumption,assumption
+Policy scenarios (support 25 EUR/MWh biomethane; CHP premium 30 EUR/MWh_e),assumed levels,assumption,assumption
+Heat network demand (3 MW above 15 C to 25 MW at -10 C; about 84 GWh per year) and heat price 45 EUR/MWh,assumed,assumption,assumption
+Plant capacities (upgrading 16 MW gas in; CHP 4; boiler 8),assumed,assumption,assumption
+Investment costs (upgrading 400 kEUR/MW; CHP 700 kEUR/MW gas in; boiler 150; storage 20 kEUR/MWh; feeding control 50 kEUR/yr),assumed,assumption,assumption
+Digestion kinetics and retention time,not modelled (feeding flexibility +-25% within the week is an assumed bound),assumption,limit
